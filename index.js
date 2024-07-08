@@ -1,9 +1,11 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const app = express();
-
-app.use(express.json());
 require("dotenv").config();
+const productRouter = require("./routes/ProductRouter");
+
+const userRouter = require("./routes/UserRouter");
+app.use(express.json());
 
 mongoose
   .connect(process.env.MONGO_URL)
@@ -13,74 +15,9 @@ mongoose
   .catch((err) => {
     console.log("Db connection Failed", err);
   });
-
-// ProductSchema
-
-const productSchema = new mongoose.Schema({
-  product_name: {
-    type: String,
-    required: true,
-  },
-  product_price: {
-    type: String,
-    required: true,
-  },
-  isInStock: {
-    type: Boolean,
-    required: true,
-  },
-  category: {
-    type: String,
-    required: true,
-  },
-});
-
-const ProductModel = mongoose.model("products", productSchema);
-
+app.use("/api/products", productRouter);
+app.use("/api/users", userRouter);
 // Create
-
-app.post("/api/products", async (req, res) => {
-  await ProductModel.create({
-    product_name: req.body.product_name,
-    product_price: req.body.product_price,
-    isInStock: req.body.isInStock,
-    category: req.body.category,
-  });
-
-  return res.status(201).json({ message: "Product Created" });
-});
-
-// get route
-
-app.get("/api/products", async (req, res) => {
-  const allProucts = await ProductModel.find({ isInStock: true });
-
-  return res.json(allProucts);
-});
-
-// Get product by id
-
-app.get("/api/products/:id", async (req, res) => {
-  const product = await ProductModel.findById(req.params.id);
-
-  return res.json(product);
-});
-
-// Update product
-
-app.put("/api/products/:id", async (req, res) => {
-  const updatedProduct = await ProductModel.findByIdAndUpdate(
-    req.params.id,
-    req.body
-  );
-  return res.json(updatedProduct);
-});
-// delete product
-
-app.delete("/api/products/:id", async (req, res) => {
-  const deletedProduct = await ProductModel.findByIdAndDelete(req.params.id);
-  return res.json(deletedProduct);
-});
 
 app.listen(8086, () => {
   console.log("Server sarted at port 8086");
